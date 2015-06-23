@@ -27,11 +27,12 @@ int main(){
 	int score,i,j,random;
 	//the max capability of my home computer is 340000
 	int numOfExamples=1000;
-	char examples[numOfExamples][36];
+	int sampleLength=35;
+	char examples[numOfExamples][sampleLength+1];
 	
 	//
 	for(i=0;i<numOfExamples;i++){
-		for(j=0;j<35;j++){
+		for(j=0;j<sampleLength;j++){
 			random=rand()%4;
 			if(random==0)
 				examples[i][j]='A';
@@ -42,7 +43,8 @@ int main(){
 			if(random==3)
 				examples[i][j]='T';
 		}
-		examples[i][35]='\0';
+		examples[i][sampleLength]='\0';
+		//printf("%s\n",examples[i]);
 	}
 
 	//for each two samples activate the Smith Waterman aligment
