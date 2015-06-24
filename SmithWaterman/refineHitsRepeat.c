@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 #define CHUNK 200
 #define BASE_PER_LINE 70
@@ -27,12 +28,15 @@ int SW(char* a, char* b, int m, int(*s)(char, char), int(*W)(int));
 void trackbackSW(char* a, char* b, int m, int(*s)(char, char), int(*W)(int), FILE* stream);
 
 char *DNA=NULL;
+clock_t start, end;
+double cpu_time_used=0;
 
 int main(int argc, char *argv[]){
 	
 	FILE *DNAfile, *readsFile, *hitsFile, *resultsFile;
 	int readedSize, DNAlength;
 	int readID, readLen, i, numOfHits, hit, hitOffset, hitScore, bestHitScore, bestHitOffset;
+	int timesRepeated=0;
 	char DNAbuffer[CHUNK];
 	char readBuf[MAX_READ_LENGTH];
 	char hitsBuf[20];
@@ -91,59 +95,67 @@ int main(int argc, char *argv[]){
 	//printDNA(dna, length, stdout);
 	
 	
-	//read unknown nomber of reads from a file
-	readID=0;
-	while(fgets(readBuf, MAX_READ_LENGTH, readsFile)!=NULL){	//for each read
-		readLen=strlen(readBuf);
-		for(i=0;i<readLen;i++)
-			if(readBuf[i]=='\n')
-				readBuf[i]='\0';
-		//printf("read[%d]=%s\n", readID, readBuf);
+	start=clock();
+	for(timesRepeated=0;timesRepeated<1000;timesRepeated++){
+		rewind(readsFile);
+		rewind(hitsFile);
+	
+		//read unknown nomber of reads from a file
+		readID=0;
+		while(fgets(readBuf, MAX_READ_LENGTH, readsFile)!=NULL){	//for each read
+			readLen=strlen(readBuf);
+			for(i=0;i<readLen;i++)
+				if(readBuf[i]=='\n')
+					readBuf[i]='\0';
+			//printf("read[%d]=%s\n", readID, readBuf);
 		
-		if(fgets(hitsBuf, 20, hitsFile)==NULL){
-			printf("Error: hits file corrupted\n");
-			free(DNA);
-			fclose(DNAfile);
-			fclose(readsFile);
-			fclose(hitsFile);
-			fclose(resultsFile);
-			return 1;	
-		}
-		numOfHits=strtoul(hitsBuf, NULL, 0);
-		//printf("hits: %d\n", numOfHits);
-		if(numOfHits==0){
-			fprintf(resultsFile,"Read id: %d\n%s\nLocation: NONE\n",readID,readBuf);
-			fprintf(resultsFile,"Score: NONE\n");
-		}
-		else{
-			for(hit=0;hit<numOfHits;hit++){
-				fgets(hitsBuf, 20, hitsFile);
-				hitOffset=strtoul(hitsBuf, NULL, 0);
-				//printf("offest: %d\n", hitOffset);
-			
-				hitScore=SW(readBuf, &DNA[hitOffset], strlen(readBuf)+difference, s, W);
-				if(hit==0 || hitScore>bestHitScore){
-					bestHitScore=hitScore;
-					bestHitOffset=hitOffset;
-				}
-				/*#if defined(PRINT_ALL_HITS) 
-				printf("offest: %d\n",hitOffset);
-				trackbackSW(readBuf, &DNA[hitOffset], strlen(readBuf)+difference, s, W, stdout);
-				printf("score: %d\n\n",hitScore);
-				#endif*/
-				
-				//printf("hit score: %d\n", hitScore);
+			if(fgets(hitsBuf, 20, hitsFile)==NULL){
+				printf("Error: hits file corrupted\n");
+				free(DNA);
+				fclose(DNAfile);
+				fclose(readsFile);
+				fclose(hitsFile);
+				fclose(resultsFile);
+				return 1;	
 			}
-			//printf("#best hit: %d\n\n", bestHitScore);
+			numOfHits=strtoul(hitsBuf, NULL, 0);
+			//printf("hits: %d\n", numOfHits);
+			if(numOfHits==0){
+				fprintf(resultsFile,"Read id: %d\n%s\nLocation: NONE\n",readID,readBuf);
+				fprintf(resultsFile,"Score: NONE\n");
+			}
+			else{
+				for(hit=0;hit<numOfHits;hit++){
+					fgets(hitsBuf, 20, hitsFile);
+					hitOffset=strtoul(hitsBuf, NULL, 0);
+					//printf("offest: %d\n", hitOffset);
+			
+					hitScore=SW(readBuf, &DNA[hitOffset], strlen(readBuf)+difference, s, W);
+					if(hit==0 || hitScore>bestHitScore){
+						bestHitScore=hitScore;
+						bestHitOffset=hitOffset;
+					}
+					/*#if defined(PRINT_ALL_HITS) 
+					printf("offest: %d\n",hitOffset);
+					trackbackSW(readBuf, &DNA[hitOffset], strlen(readBuf)+difference, s, W, stdout);
+					printf("score: %d\n\n",hitScore);
+					#endif*/
+				
+					//printf("hit score: %d\n", hitScore);
+				}
+				//printf("#best hit: %d\n\n", bestHitScore);
 		
-			fprintf(resultsFile,"Read id: %d\n%s\nhit offset: %d\n",readID,readBuf,bestHitOffset);
-			trackbackSW(readBuf, &DNA[bestHitOffset], strlen(readBuf)+difference, s, W, resultsFile);
-			fprintf(resultsFile,"Score: %d\n",bestHitScore);
+				fprintf(resultsFile,"Read id: %d\n%s\nhit offset: %d\n",readID,readBuf,bestHitOffset);
+				trackbackSW(readBuf, &DNA[bestHitOffset], strlen(readBuf)+difference, s, W, resultsFile);
+				fprintf(resultsFile,"Score: %d\n",bestHitScore);
+			}	
+			readID++;
 		}	
-		readID++;
-	}	
+	}
+	end=clock();
+	cpu_time_used+=((double)(end-start))/CLOCKS_PER_SEC;
 	
-	
+	printf("Total time on CPU: %lf\n",cpu_time_used);
 	
 	fclose(DNAfile);
 	fclose(readsFile);
