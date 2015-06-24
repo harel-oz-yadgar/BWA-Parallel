@@ -1,0 +1,16 @@
+refineHits.c
+compile:	gcc -pthread refineHits.c -o refine.out
+run:		./refine.out <dna File> <reads File> <hits File> <difference> <results File>
+this program takes a dna file, a reads file and a hits file in the format:
+dna file - dna is a long string of characters in the same line
+reads file - every read is in a different line (reads separated by '\n')
+hits file - every read have the number of hits first of all and after that each of the offsets of the hits in each line
+the program take those 3 files, the number of differences allowed and calculate the best hit for each read and print it in the result file
+result file format is:
+Read id: <ID>
+<read string>
+hit offset: <offset>
+<part of the DNA>
+<alignment data>
+<read>
+Score: <hit score>

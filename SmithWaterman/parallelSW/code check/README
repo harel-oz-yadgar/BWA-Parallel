@@ -1,0 +1,9 @@
+test done during the work on parallel SW 
+
+orderedWrite.c
+to compile:
+gcc -pthread orderedWrite.c -o test.out
+./test.out
+notes:
+checked how to synchronize thread writing to file (this case stdout) without using join and only conditional variables
+ 

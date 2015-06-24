@@ -2,19 +2,22 @@
 #include <pthread.h>
 
 void* readHandler(void* p);
-int nextToWrite=0;
+int nextToWrite;
 pthread_mutex_t lock; 
 pthread_cond_t cv; 
+
+#define N 10
 
 
 int main(){
 	int i;
-	pthread_t tids[10]; 
+	pthread_t tids[N]; 
+	nextToWrite=0;
 
 	pthread_mutex_init(&lock, NULL); 
 	pthread_cond_init(&cv, NULL); 
 	
-	for(i=9;i>=0;i--) 
+	for(i=N-1;i>=0;i--) 
 		pthread_create(tids+i,NULL,readHandler,(void*)i); 
 	
 	pthread_cond_signal(&cv);
@@ -26,8 +29,10 @@ int main(){
 void* readHandler(void* p){
 	int tid=(int)p;
 	printf("%d created\n",tid);
-	pthread_mutex_lock(&lock); 
 	
+	//do work
+	
+	pthread_mutex_lock(&lock); 
 	while(tid!=nextToWrite)
 		pthread_cond_wait(&cv,&lock); 
 	nextToWrite++;
