@@ -108,11 +108,12 @@ void* do_work(void* p){
 			pthread_mutex_unlock(&tp->qlock);	
 			return NULL;
 		}
-		if(tp->qsize==0)	//if the the job queue size is 0 then wait on q_empty
-			pthread_cond_wait(&tp->q_empty,&tp->qlock);	
-		if(tp->shutdown==1){	//if destroy begun free the lock and return NULL
-			pthread_mutex_unlock(&tp->qlock);
-			return NULL;
+		while(tp->qsize==0){	//if the the job queue size is 0 then wait on q_empty
+			pthread_cond_wait(&tp->q_empty,&tp->qlock);
+			if(tp->shutdown==1){	//if destroy begun free the lock and return NULL
+				pthread_mutex_unlock(&tp->qlock);
+				return NULL;
+			}
 		}
 		//take out job from the queue
 		work=tp->qhead;
