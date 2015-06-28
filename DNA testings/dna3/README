@@ -1,0 +1,12 @@
+reads: 20
+read length: 35
+coverage: 12
+
+deletion: 4 char
+probability: 1,5
+
+mismatch: 5 char
+probability: 1,4
+
+insertion: 4 char
+probability: 1,5

@@ -1,0 +1,7 @@
+Read id: 0
+AGCTT
+hit offset: 0
+AGTCTT
+|| |||
+AG-CTT
+Score: 9

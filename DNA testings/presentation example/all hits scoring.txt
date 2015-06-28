@@ -1,0 +1,53 @@
+offest: 10
+A-CTAT
+| || |
+AGCT-T
+score: 6
+
+offest: 0
+AGTCTT
+|| |||
+AG-CTT
+score: 9
+
+offest: 7
+CTT
+|||
+CTT
+score: 6
+
+offest: 3
+GCTT
+||||
+GCTT
+score: 8
+
+offest: 6
+GCTT
+||||
+GCTT
+score: 8
+
+offest: 1
+GTCTT
+| |||
+G-CTT
+score: 7
+
+offest: 2
+GCT
+|||
+GCT
+score: 6
+
+offest: 5
+GCTT
+||||
+GCTT
+score: 8
+
+offest: 4
+GCTT
+||||
+GCTT
+score: 8
