@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include "threadpool.h"
+#include <time.h>
 
 #define CHUNK 200
 #define BASE_PER_LINE 70
@@ -12,7 +13,9 @@
 #define DIAGONAL 7
 #define STOP 0
 
-#define THREADPOOL_SIZE 3
+#define THREADPOOL_SIZE 1
+
+#define USE_THREADS
 
 int s(char a, char b){
 	return a==b ? 2:-1;
@@ -30,6 +33,8 @@ void* processRead(void *args);
 
 char *DNA=NULL;
 int difference;
+time_t start, end;
+double cpu_time_used=0, thread_time=0;
 
 typedef struct{
 	int readID, numOfHits;
@@ -49,6 +54,14 @@ int main(int argc, char *argv[]){
 	int *hitsOffsets;
 	threadpool *tp;
 	processReadData *arguments;
+	int timesRepeated=0;
+	
+	#if defined(USE_THREADS)
+		printf("Using %d threads\n",THREADPOOL_SIZE);
+	#else
+		printf("Does not using threads\n");
+	#endif
+
 	
 	if(argc!=6){
 		printf("Usage: ./refine.out <dna File> <reads File> <hits File> <difference> <results File>\n");
@@ -111,58 +124,80 @@ int main(int argc, char *argv[]){
  	
 	//printDNA(dna, length, stdout);
 	
-
-	//read unknown nomber of reads from a file
-	readID=0;
-	while(fgets(readBuf, MAX_READ_LENGTH, readsFile)!=NULL){	//for each read
-		readLen=strlen(readBuf);
-		for(i=0;i<readLen;i++)
-			if(readBuf[i]=='\n')
-				readBuf[i]='\0';
-		
-		if(fgets(hitsBuf, 20, hitsFile)==NULL){
-			printf("Error: hits file corrupted\n");
-			destroy_threadpool(tp);
-			free(DNA);
-			fclose(DNAfile);
-			fclose(readsFile);
-			fclose(hitsFile);
-			fclose(resultsFile);
-			return 1;	
-		}
-		numOfHits=strtoul(hitsBuf, NULL, 0);
-
-		if(numOfHits==0){
-			arguments=(processReadData*)malloc(sizeof(processReadData));
-			arguments->readID=readID;
-			arguments->numOfHits=0;
-			arguments->read=strdup(readBuf);
-			arguments->hitOffsets=NULL;
-			arguments->resultsFile=resultsFile;
-			
-			dispatch(tp,(dispatch_fn)processRead,(void*)arguments);
-		}
-		else{
-			hitsOffsets=(int*)malloc(numOfHits*sizeof(int));
-			for(hit=0;hit<numOfHits;hit++){
-				fgets(hitsBuf, 20, hitsFile);
-				hitsOffsets[hit]=strtoul(hitsBuf, NULL, 0);
-			}
-
-			arguments=(processReadData*)malloc(sizeof(processReadData));
-			arguments->readID=readID;
-			arguments->numOfHits=numOfHits;
-			arguments->read=strdup(readBuf);
-			arguments->hitOffsets=hitsOffsets;
-			arguments->resultsFile=resultsFile;
-			
-			dispatch(tp,(dispatch_fn)processRead,(void*)arguments);
-			
-		}
-		readID++;
-	}	
 	
-	destroy_threadpool(tp);
+	start=time(NULL);
+	for(timesRepeated=0;timesRepeated<5000;timesRepeated++){
+		rewind(readsFile);
+		rewind(hitsFile);
+
+		//read unknown nomber of reads from a file
+		readID=0;
+		while(fgets(readBuf, MAX_READ_LENGTH, readsFile)!=NULL){	//for each read
+			readLen=strlen(readBuf);
+			for(i=0;i<readLen;i++)
+				if(readBuf[i]=='\n')
+					readBuf[i]='\0';
+		
+			if(fgets(hitsBuf, 20, hitsFile)==NULL){
+				printf("Error: hits file corrupted\n");
+				destroy_threadpool(tp);
+				free(DNA);
+				fclose(DNAfile);
+				fclose(readsFile);
+				fclose(hitsFile);
+				fclose(resultsFile);
+				return 1;	
+			}
+			numOfHits=strtoul(hitsBuf, NULL, 0);
+
+			if(numOfHits==0){
+				arguments=(processReadData*)malloc(sizeof(processReadData));
+				arguments->readID=readID;
+				arguments->numOfHits=0;
+				arguments->read=strdup(readBuf);
+				arguments->hitOffsets=NULL;
+				arguments->resultsFile=resultsFile;
+				
+				#if defined(USE_THREADS)
+					dispatch(tp,(dispatch_fn)processRead,(void*)arguments);
+				#else
+					processRead(arguments);
+				#endif
+			}
+			else{
+				hitsOffsets=(int*)malloc(numOfHits*sizeof(int));
+				for(hit=0;hit<numOfHits;hit++){
+					fgets(hitsBuf, 20, hitsFile);
+					hitsOffsets[hit]=strtoul(hitsBuf, NULL, 0);
+				}
+
+				arguments=(processReadData*)malloc(sizeof(processReadData));
+				arguments->readID=readID;
+				arguments->numOfHits=numOfHits;
+				arguments->read=strdup(readBuf);
+				arguments->hitOffsets=hitsOffsets;
+				arguments->resultsFile=resultsFile;
+			
+				#if defined(USE_THREADS) 
+					dispatch(tp,(dispatch_fn)processRead,(void*)arguments);
+				#else
+					processRead(arguments);
+				#endif
+			}
+			readID++;
+		}	
+	}
+	#if defined(USE_THREADS)
+		destroy_threadpool(tp);
+	#endif
+	
+	
+	
+	end=time(NULL);
+	cpu_time_used+=(double)(end-start);
+	printf("Total time on CPU: %lf\n",cpu_time_used);
+
+	
 	fclose(DNAfile);
 	fclose(readsFile);
 	fclose(hitsFile);
@@ -404,9 +439,10 @@ void* processRead(void *args){
 			bestHitOffset=hitsOffsets[hit];
 		}
 	}
-	fprintf(resultsFile,"Read id: %d\n%s\nhit offset: %d\n",readID,read, bestHitOffset);
+	
+	/*fprintf(resultsFile,"Read id: %d\n%s\nhit offset: %d\n",readID,read, bestHitOffset);
 	trackbackSW(read, &DNA[bestHitOffset], strlen(read)+difference, s, W, resultsFile);
-	fprintf(resultsFile,"Score: %d\n",bestHitScore);
+	fprintf(resultsFile,"Score: %d\n",bestHitScore);*/
 
 	free(read);
 	free(hitsOffsets);
