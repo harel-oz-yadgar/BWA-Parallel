@@ -17,9 +17,9 @@ CTT
 score: 6
 
 offest: 3
-GCTT
-||||
-GCTT
+TGCTT
+X||||
+AGCTT
 score: 8
 
 offest: 6
@@ -35,19 +35,19 @@ G-CTT
 score: 7
 
 offest: 2
-GCT
-|||
-GCT
+TGCT
+X|||
+AGCT
 score: 6
 
 offest: 5
-GCTT
-||||
-GCTT
+TGCTT
+X||||
+AGCTT
 score: 8
 
 offest: 4
-GCTT
-||||
-GCTT
+TGCTT
+X||||
+AGCTT
 score: 8
