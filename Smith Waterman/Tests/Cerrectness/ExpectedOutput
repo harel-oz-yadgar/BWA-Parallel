@@ -2,7 +2,7 @@ Example1:
 AGCACACA
 ACACACTA
 
-H  -	A	C	A	C	A	C	T	A	
+H  -	A	C	A	C	A	C	T	A		
 -  0	0	0	0	0	0	0	0	0	
 A: 0	2	1	2	1	2	1	0	2	
 G: 0	1	1	1	1	1	1	0	1	
@@ -19,7 +19,7 @@ Example2:
 GACTTAC
 CGTGAATTCAT
 
-H  -	C	G	T	G	A	A	T	T	C	A	T	
+H  -	C	G	T	G	A	A	T	T	C	A	T		
 -  0	0	0	0	0	0	0	0	0	0	0	0	
 G: 0	0	5	1	5	1	0	0	0	0	0	0	
 A: 0	0	1	2	1	10	6	2	0	0	5	1	
@@ -35,7 +35,7 @@ Example3:
 ACCTAAGG
 GGCTCAATCA
 
-H  -	G	G	C	T	C	A	A	T	C	A	
+H  -	G	G	C	T	C	A	A	T	C	A		
 -  0	0	0	0	0	0	0	0	0	0	0	
 A: 0	0	0	0	0	0	2	2	0	0	2	
 C: 0	0	0	2	0	2	0	1	1	2	0	

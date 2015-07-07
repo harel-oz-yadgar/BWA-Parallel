@@ -29,7 +29,7 @@ int SW(char* a,char* b,int(*s)(char,char),int(*W)(int)){
 		H[j]=0;
 		Ix[j]=0;
 	}
-	
+	Iy=0;
 	
 	#if defined(PRINT)
 	printf("H  -\t");
@@ -52,12 +52,12 @@ int SW(char* a,char* b,int(*s)(char,char),int(*W)(int)){
 		Iy=0;
 		for(j=1;j<m;j++){	//O(m)
 			Ix[j]=Max(H[j]+W(1), Ix[j]+W(1));
-			Iy[j]=Max(H[j-1]+W(1), Iy+W(1));
+			Iy=Max(H[j-1]+W(1), Iy+W(1));
 			tmp=H[j];
-			H[j]=Max3(Hdiagonal+s(a[i-1],b[j-1]), Ix[j], Iy[j]);
+			H[j]=Max3(Hdiagonal+s(a[i-1],b[j-1]), Ix[j], Iy);
 			H[j]=Max(H[j],0);
 			Hdiagonal=tmp;
-			
+
 			#if defined(PRINT)
 			printf("%d\t",H[j]);
 			#endif
